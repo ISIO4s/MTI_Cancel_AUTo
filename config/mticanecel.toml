@@ -1,0 +1,56 @@
+[oracle.xininsure_dev]
+host_xininsure = "10.0.0.127"
+port_xininsure = 1521
+username_xininsure = "XININSURE"
+password_xininsure = "Xindev127"
+dbname_xininsure = "XINDEV"
+
+[oracle.xininsure_preprod]
+host_xininsure = "10.0.0.129"
+port_xininsure = 1521
+username_xininsure = "CONRPAOPER"
+password_xininsure = "MxT1nW11"
+dbname_xininsure = "OK"
+
+[oracle.xininsure_pro]
+host_xininsure = "10.0.0.111"
+port_xininsure = 1521
+username_xininsure = "CONRPAOPER"
+password_xininsure = "MxT1nW11"
+dbname_xininsure = "OK"
+
+[oracle.tqmsale_dev]
+username_tqmsale = "tqmsale"
+password_tqmsale = "Predev127"
+host_tqmsale = "10.0.0.127"
+port_tqmsale = 1521
+dbname_tqmsale = "SALEDEV"
+
+[oracle.tqmsale_preprod]
+username_tqmsale = "CONRPAOPER"
+password_tqmsale = "PreSale128"
+host_tqmsale = "10.0.0.128"
+port_tqmsale = 1521
+dbname_tqmsale = "SALE"
+
+[oracle.tqmsale_pro]
+host_tqmsale = "10.0.0.72"
+port_tqmsale = 1521
+username_tqmsale = "CONRPAOPER"
+password_tqmsale = "T0a4Nx1A7m"
+dbname_tqmsale = "SALE"
+
+[oracle.xininsure_preprod_demo]
+host_xininsure = "10.0.0.129"
+port_xininsure = 1521
+username_xininsure = "tqmwebupdate"
+password_xininsure = "Xinpre129"
+dbname_xininsure = "OK"
+
+[variable]
+UTC = "Asia/Bangkok"
+S0duim = "https://discord.com/api/webhooks/1427460941288570890/0tP9HoCEe4hSjTIoNYvkJvotkXLPnEImu8CtOmIbkQuGxacJB9pJ7JV1zg48OW-yQgFB"
+prbgateway_url = "http://10.0.0.252:8030"
+username = "MITPRB"
+password = "PRBMIT"
+
