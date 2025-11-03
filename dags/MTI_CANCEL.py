@@ -246,7 +246,7 @@ def main():
         try:
             print("==========start==========")
             mock = ""
-            qdate = datetime.strptime(mock, "%Y-%m-%d") if mock else None
+            qdate = datetime.strptime(mock, "%Y-%m-%d") if mock else currentDate
             print(f"วันที่:{qdate}")
             cursor,conn = ConOracle()
             params = {"qdate": qdate}
