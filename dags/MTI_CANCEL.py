@@ -2,6 +2,7 @@ from airflow import DAG
 from airflow.decorators import task, dag, task_group
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.bash import BashOperator
+from airflow.timetables.trigger import CronTriggerTimetable
 from datetime import datetime
 import tomllib
 import pendulum
@@ -62,9 +63,9 @@ def Get_Holidays():
         df = pd.DataFrame(
             cursor.fetchall(), columns=[desc[0] for desc in cursor.description]
         )
-        print(df)
+        #print(df)
         formatted_table = df.to_markdown(index=False)
-        print(f"\n{formatted_table}")
+        #print(f"\n{formatted_table}")
         print(f"Get data successfully")
         return df
     except oracledb.Error as e:
@@ -80,7 +81,7 @@ def Check_Holiday(df):
         # print(f"Holiday Dates: \n  {holiday_dates}")
         formatted_table = holiday_dates.to_markdown(index=False)
         #print(f"\n{formatted_table}")
-        #print(f"Today : {currentDate}")
+        print(f"Today : {currentDate}")
         if currentDate in holiday_dates.values:
             print("Today is a holiday. Ending DAG.")
             return "Holiday_path"
@@ -163,7 +164,7 @@ def prbgateway(df):
             'password':password
         }
         url_auth = f"{url}/auth/token"
-        url_cancel=f"{url}/MTIPRB/Cancel"
+        url_cancel=f"{url}/MTIPRB/CancelBySaleId"
         respon = requests.post(url_auth,data=fd)
 
         if respon.status_code == 200:
@@ -173,26 +174,7 @@ def prbgateway(df):
             logging.error("cant login")
         for index,row in df.iterrows():
             body = {
-                    "saleid":row["SALEID"],
-                    "referenceNo":"S_52973138_7",
-                    "partnerCode":"TQM",
-                    "PaymentRefNo":" ",
-                    "TotalPremium":967.28,
-                    "agentNo":"74000087",
-                    "cancelDate":"27/08/2025",
-                    "notificationDate":"24/01/2024",
-                    "cancelType":"CT",
-                    "effectiveDate": "26/08/2025",
-                    "expireDate": "26/08/2026",
-                    "policyNo":"58207391",
-                    "premium":900,
-                    "proposalID":"7213962069",
-                    "remark":"Cancel Policy",
-                    "stampDuty":4,
-                    "systemCallerName":"apiCreatePolicy",
-                    "systemName":"APIMOTOR",
-                    "vat":63.28,
-                    "NotificationDate":"24/01/2024"
+                    "saleid":str(row["SALEID"]),
                     }
             headers = {
                 "Authorization": f"Bearer {token}",
@@ -201,10 +183,14 @@ def prbgateway(df):
 
             response = requests.post(url_cancel,headers=headers,json=body)
             response_data = response.json()
-
-            api_status = response_data["status"]
-            print(api_status)
-            if api_status is True:
+            logging.error("===========respon_api===========")
+            print(response_data)
+            if response_data:
+                api_status = response_data["status"]
+            else:
+                api_status = False
+            
+            if api_status is False:
                 message_text = response_data["messages"][0].get("messageText", None)
                 print(message_text)
                 df.loc[index, 'APISTATUS'] = 'N'
@@ -220,7 +206,7 @@ def prbgateway(df):
 @dag(
         dag_id="MTI-CANCEL-AIRFLOW",
         start_date=pendulum.datetime(2025, 10, 1, tz=local_tz),
-        schedule="@daily",
+        schedule=CronTriggerTimetable("*/5 8-20 * * *", timezone="Asia/Bangkok"),
         catchup=False,
         tags=["MTI"],
 )
@@ -240,7 +226,7 @@ def main():
         try: 
             df = Get_Holidays()
             result = Check_Holiday(df)
-            print(result)
+            #print(result)
             message = f"Continue with {result}"
             if result == "Holiday_path":
                 return "Holiday_path"
@@ -261,11 +247,12 @@ def main():
 
         try:
             print("==========start==========")
-            mock = "2023-11-16"
+            mock = ""
             qdate = datetime.strptime(mock, "%Y-%m-%d") if mock else None
             print(f"วันที่:{qdate}")
             cursor,conn = ConOracle()
             params = {"qdate": qdate}
+            logging.info("==========Get data==========")
             path_file = '/opt/airflow/query/get_data.sql'
             with open(path_file,"r",encoding="utf-8") as file:
                 get_data_sql = file.read()
@@ -281,13 +268,12 @@ def main():
             return { 'df_cancel_work': df}
 
         except oracledb.Error as e:
-            print(f"Get_Data : {e}")
+            logging.error(f"Get_Data : {e}")
             message = f'เกิดข้อผิดพลาด: {e}'
             discord_notify(message)
         finally:
             cursor.close()
             conn.close()
-            
             
     @task # insert รับทราบงาน
     def got_it(**kwargs):
@@ -330,6 +316,7 @@ def main():
         result = ti.xcom_pull(task_ids="main_process_group.got_it", key="return_value")
         df = result.get("df_apicancel",pd.DataFrame())
         try:
+            
             
             df_pass = df.query("APISTATUS == 'Y'") if df is not None and not df.empty else pd.DataFrame()
             df_fail = df.query("APISTATUS == 'N'") if df is not None and not df.empty else pd.DataFrame()
