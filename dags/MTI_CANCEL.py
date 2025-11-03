@@ -71,9 +71,7 @@ def Get_Holidays():
     except oracledb.Error as e:
         print(f"Get_holidays : {e}")
         return None
-    finally:
-        cursor.close()
-        conn.close()
+    
 
 def Check_Holiday(df):
     try:
@@ -271,9 +269,6 @@ def main():
             logging.error(f"Get_Data : {e}")
             message = f'เกิดข้อผิดพลาด: {e}'
             discord_notify(message)
-        finally:
-            cursor.close()
-            conn.close()
             
     @task # insert รับทราบงาน
     def got_it(**kwargs):
