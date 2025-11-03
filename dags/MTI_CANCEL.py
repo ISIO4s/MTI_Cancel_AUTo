@@ -12,6 +12,7 @@ import oracledb
 import logging
 import pandas as pd
 import requests
+import pendulum
 
 with open("./config/mticanecel.toml", "rb") as f:
     cfg = tomllib.load(f)
@@ -21,6 +22,7 @@ local_tz = pendulum.timezone (local)
 currentDateAndTime = pendulum.now(tz=local_tz)
 currentDate = currentDateAndTime.strftime("%Y-%m-%d")
 currentTime = currentDateAndTime.strftime("%H:%M:%S")
+
 
 url = cfg["variable"]["prbgateway_url"]
 
@@ -246,10 +248,12 @@ def main():
         try:
             print("==========start==========")
             mock = ""
-            qdate = datetime.strptime(mock, "%Y-%m-%d") if mock else currentDate
+            mockdate = currentDateAndTime
+            qdate = datetime.strptime(mock, "%Y-%m-%d") if mock else mockdate
             print(f"วันที่:{qdate}")
             cursor,conn = ConOracle()
             params = {"qdate": qdate}
+            #params = {"qdate": qdate}
             logging.info("==========Get data==========")
             path_file = '/opt/airflow/query/get_data.sql'
             with open(path_file,"r",encoding="utf-8") as file:
