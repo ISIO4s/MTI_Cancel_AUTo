@@ -81,6 +81,7 @@ def Check_Holiday(df):
         # print(f"Holiday Dates: \n  {holiday_dates}")
         formatted_table = holiday_dates.to_markdown(index=False)
         #print(f"\n{formatted_table}")
+        currentDate = "2025-11-06"
         print(f"Today : {currentDate}")
         if currentDate in holiday_dates.values:
             print("Today is a holiday. Ending DAG.")
